@@ -6,11 +6,19 @@ func (p Portfolio) Add(money Money) Portfolio {
 	return append(p, money)
 }
 
+func convert(money Money, currency string) float64 {
+	euroToUSD := 1.2
+	if money.currency == currency {
+		return money.amount
+	}
+	return money.amount * euroToUSD
+}
+
 func (p Portfolio) Evaluate(currency string) Money {
-	var totalMoney float64
+	var totalAmount float64
 	// NOT implemented different currency!!
 	for _, money := range p {
-		totalMoney += money.amount
+		totalAmount += convert(money, currency)
 	}
-	return Money{amount: totalMoney, currency: currency}
+	return NewMoney(totalAmount, currency)
 }
