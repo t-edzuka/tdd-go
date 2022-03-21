@@ -54,3 +54,16 @@ func Testユーロとドルの足し算(t *testing.T) {
 
 	assertEqual(t, expectedValue, actualValue)
 }
+
+func TestAdditionOfDollarsAndWons(t *testing.T) {
+	var portfolio s.Portfolio
+
+	oneDollar := s.NewMoney(1, "USD")
+	elevenHundredOne := s.NewMoney(1100, "KRW")
+	portfolio = portfolio.Add(oneDollar)
+	portfolio = portfolio.Add(elevenHundredOne)
+
+	expectedValue := s.NewMoney(2200, "KRW")
+	actualValue := portfolio.Evaluate("KRW")
+	assertEqual(t, expectedValue, actualValue)
+}
