@@ -1,8 +1,6 @@
 package stocks
 
-import (
-	"fmt"
-)
+import "errors"
 
 type Portfolio []Money
 
@@ -10,28 +8,38 @@ func (p Portfolio) Add(money Money) Portfolio {
 	return append(p, money)
 }
 
-func keyConvert(from string, to string) string {
-	return fmt.Sprintf("%s->%s", from, to)
+func (p Portfolio) Evaluate(currency string) (Money, error) {
+	total := 0.0
+	failedConversions := make([]string, 0)
+	for _, m := range p {
+		if convertedAmount, ok := convert(m, currency); ok {
+			total = total + convertedAmount
+		} else {
+			failedConversions = append(failedConversions,
+				m.currency+"->"+currency)
+		}
+	}
+	if len(failedConversions) == 0 {
+		return NewMoney(total, currency), nil
+	}
+	failures := "["
+	for _, f := range failedConversions {
+		failures = failures + f + ","
+	}
+	failures = failures + "]"
+	return NewMoney(0, ""),
+		errors.New("Missing exchange rate(s):" + failures)
 }
 
-func convert(money Money, currency string) float64 {
-
-	exchangeRate := map[string]float64{
+func convert(money Money, currency string) (float64, bool) {
+	exchangeRates := map[string]float64{
 		"EUR->USD": 1.2,
 		"USD->KRW": 1100,
 	}
 	if money.currency == currency {
-		return money.amount
+		return money.amount, true
 	}
-	key := keyConvert(money.currency, currency)
-	return money.amount * exchangeRate[key]
-}
-
-func (p Portfolio) Evaluate(currency string) Money {
-	var totalAmount float64
-	// NOT implemented different currency!!
-	for _, money := range p {
-		totalAmount += convert(money, currency)
-	}
-	return NewMoney(totalAmount, currency)
+	key := money.currency + "->" + currency
+	rate, ok := exchangeRates[key]
+	return money.amount * rate, ok
 }
